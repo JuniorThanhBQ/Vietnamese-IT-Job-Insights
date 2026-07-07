@@ -216,3 +216,30 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite
+dist/
+.vite/
+
+playwright-report/
+test-results/
+blob-report/
+
+.vscode/
+.idea/
+
+.env.*
+!.env.example
+
+.DS_Store
+Thumbs.db
+
+venv/
+.venv/

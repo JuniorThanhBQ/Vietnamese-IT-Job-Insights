@@ -1,0 +1,37 @@
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/**"
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "frontend/**"
+
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Dockerfile"
+          - "docker-compose.yml"
+          - "docker/**"
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/database/**"
+          - "migrations/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+
+feature:
+  - head-branch:
+      - "^feature/"
+
+bug:
+  - head-branch:
+      - "^fix/"
+      - "^bugfix/"
+      
