@@ -1,0 +1,86 @@
+name: Code Linting Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-linting:
+    name: Lint (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+
+      - name: Detect Python Project
+        if: ${{ matrix.language == 'python' }}
+        id: detect-python
+        run: bash scripts/detect-python.sh
+
+      - name: Setup Python
+        if: ${{ matrix.language == 'python' && steps.detect-python.outputs.detected == 'true' }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        if: ${{ matrix.language == 'python' && steps.detect-python.outputs.detected == 'true' }}
+        run: bash scripts/install-python-deps.sh
+
+      - name: Run Pylint
+        if: ${{ matrix.language == 'python' && steps.detect-python.outputs.detected == 'true' }}
+        run: bash scripts/run-pylint.sh
+
+      - name: Detect Node.js Project
+        if: ${{ matrix.language == 'javascript' }}
+        id: detect-node
+        run: bash scripts/detect-node.sh
+
+      - name: Install pnpm (if detected)
+        if: ${{ matrix.language == 'javascript' && steps.detect-node.outputs.detected == 'true' && steps.detect-node.outputs.manager == 'pnpm' }}
+        run: npm install -g pnpm
+
+      - name: Setup Node.js
+        if: ${{ matrix.language == 'javascript' && steps.detect-node.outputs.detected == 'true' }}
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: '20'
+          cache: ${{ steps.detect-node.outputs.manager }}
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Dependencies
+        if: ${{ matrix.language == 'javascript' && steps.detect-node.outputs.detected == 'true' }}
+        run: ${{ steps.detect-node.outputs.command }}
+
+      - name: Run ESLint
+        if: ${{ matrix.language == 'javascript' && steps.detect-node.outputs.detected == 'true' }}
+        env:
+          RUNNER: ${{ steps.detect-node.outputs.runner }}
+        run: bash scripts/run-eslint.sh

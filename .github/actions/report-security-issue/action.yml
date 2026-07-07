@@ -1,0 +1,81 @@
+name: 'Report Security Scan Failure'
+description: >
+  Creates a GitHub issue labeled "security" when a SAST/dependency/secret scan fails.
+  If an open issue for the same check already exists, appends a comment instead of
+  creating a duplicate.
+
+inputs:
+  check-name:
+    description: 'Human-readable name of the failed check, e.g. "CodeQL - python"'
+    required: true
+  details:
+    description: 'Optional extra context to include in the issue body'
+    required: false
+    default: ''
+  github-token:
+    description: 'Token used to read/create issues (usually secrets.GITHUB_TOKEN)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create or update security issue
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        CHECK_NAME: ${{ inputs.check-name }}
+        DETAILS: ${{ inputs.details }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const checkName = process.env.CHECK_NAME || '';
+          const details = process.env.DETAILS || '';
+          const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          const title = `[security] ${checkName} failed`;
+
+          // Look for an already-open issue for this exact check so repeated
+          // failures update one thread instead of spawning duplicates.
+          const { data: openIssues } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: 'security',
+            per_page: 100,
+          });
+
+          const existing = openIssues.find(i => i.title === title);
+
+          const bodyLines = [
+            `**Check:** ${checkName}`,
+            `**Workflow run:** ${runUrl}`,
+            `**Branch/ref:** \`${context.ref}\``,
+            `**Commit:** \`${context.sha}\``,
+            '',
+            '**Details:**',
+            details && details.trim().length > 0
+              ? details
+              : '_See the workflow run logs and the uploaded SARIF report (Security tab > Code scanning alerts) for full findings._',
+            '',
+            '> Do not paste secret values or raw exploit payloads into this issue. ' +
+            'Rotate any exposed credentials immediately and reference the scan output instead.',
+          ];
+          const body = bodyLines.join('\n');
+
+          if (existing) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: existing.number,
+              body: `New failure detected on this check.\n\n${body}`,
+            });
+            core.notice(`Updated existing issue #${existing.number}`);
+          } else {
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['security'],
+            });
+            core.notice(`Created issue #${created.data.number}`);
+          }
+          

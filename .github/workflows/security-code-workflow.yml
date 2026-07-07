@@ -1,0 +1,217 @@
+name: Security Code Workflow
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: security-pipeline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    name: Secret Scanning
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0 
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_SUMMARY: true
+
+      - name: Open security issue on failure
+        if: failure()
+        uses: ./.github/actions/report-security-issue
+        with:
+          check-name: 'Secret scanning (gitleaks)'
+          details: >-
+            A potential hard-coded secret was detected in the repository or its history.
+            Do not paste the secret value here — rotate the credential immediately, then
+            check the gitleaks report in this run's logs/artifacts for the file and line.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # eslint-scan:
+  #   name: ESLint Security (Frontend)
+  #   needs: secret-scan
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
+  #   steps:
+  #     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+  #     - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+  #       with:
+  #         node-version: '20'
+  #         cache: 'npm'
+  #         cache-dependency-path: frontend/package-lock.json
+
+  #     - name: Install project dependencies
+  #       run: npm ci
+
+  #     - name: Install security lint tooling
+  #       run: |
+  #         npm install --no-save \
+  #           eslint-plugin-security \
+  #           eslint-plugin-security-node \
+  #           @microsoft/eslint-formatter-sarif \
+  #           @typescript-eslint/parser \
+  #           @typescript-eslint/eslint-plugin
+
+  #     - name: Run ESLint (security ruleset)
+  #       run: |
+  #         npx eslint . \
+  #           --config ../.github/security.eslint.config.js \
+  #           --ext .js,.jsx,.ts,.tsx \
+  #           --format @microsoft/eslint-formatter-sarif \
+  #           --output-file ../eslint-results.sarif
+
+  #     - name: Upload SARIF
+  #       if: always()
+  #       uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+  #       with:
+  #         sarif_file: eslint-results.sarif
+  #         category: eslint-security
+
+  #     - name: Open security issue on failure
+  #       if: failure()
+  #       uses: ./.github/actions/report-security-issue
+  #       with:
+  #         check-name: 'ESLint Security (frontend)'
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  bandit-scan:
+    name: Bandit (Backend)
+    needs: secret-scan
+    permissions:
+      contents: read
+      security-events: write
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        with:
+          python-version: '3.12'
+
+      - name: Install Bandit
+        run: pip install "bandit[sarif]==1.7.*"
+
+      - name: Run Bandit
+        run: |
+          bandit -r backend \
+            -f sarif -o bandit-results.sarif \
+            -ll -ii \
+            --exclude '**/tests/**,**/.venv/**,**/migrations/**'
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+      - name: Open security issue on failure
+        if: failure()
+        uses: ./.github/actions/report-security-issue
+        with:
+          check-name: 'Bandit (backend)'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  semgrep-scan:
+    name: Semgrep full-repo scan
+    needs: [eslint-scan, bandit-scan]
+    permissions:
+      contents: read
+      security-events: write
+      issues: write
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.168.0
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Run Semgrep
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          semgrep scan \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/javascript \
+            --config p/typescript \
+            --sarif --output semgrep.sarif \
+            --error \
+            --metrics=off
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      - name: Open security issue on failure
+        if: failure()
+        uses: ./.github/actions/report-security-issue
+        with:
+          check-name: 'Semgrep scan'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  codeql-scan:
+    name: CodeQL - ${{ matrix.language }}
+    needs: semgrep-scan
+    permissions:
+      contents: read
+      security-events: write
+      issues: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: python
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          config-file: ./codeql_config.yml
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+        with:
+          category: '/language:${{ matrix.language }}'
+
+      - name: Open security issue on failure
+        if: failure()
+        uses: ./.github/actions/report-security-issue
+        with:
+          check-name: 'CodeQL analysis (${{ matrix.language }})'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
