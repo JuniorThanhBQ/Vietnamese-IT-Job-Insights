@@ -32,6 +32,6 @@ jobs:
     steps:
       - uses: agilepathway/label-checker@c3d16ad512e7cea5961df85ff2486bb774caf3c5 
         with:
-          one_of: feature,bug,hotfix,refactor,enhancement,security,documentation
+          one_of: feature,bug,hotfix,refactor,enhancement,security,documentation,tag,release 
           none_of: duplicate,invalid,wontfix
           repo_token: ${{ secrets.GITHUB_TOKEN }}

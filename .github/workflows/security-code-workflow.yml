@@ -2,8 +2,15 @@ name: Security Code Workflow
 
 on:
   push:
-    branches: [main, develop]
+    branches: 
+      - main
+      - develop
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   schedule:
     - cron: '0 1 * * *'
   workflow_dispatch:
