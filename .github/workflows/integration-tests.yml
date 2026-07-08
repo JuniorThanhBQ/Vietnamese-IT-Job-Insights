@@ -1,0 +1,45 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Set up Docker Compose
+        run: docker compose version || docker-compose --version
+
+      - name: Start services (if compose file exists)
+        run: |
+          if [ -f docker-compose.local.yml ]; then
+            docker compose -f docker-compose.local.yml up -d --build
+            sleep 5
+          else
+            echo "No docker-compose.local.yml found; skipping compose start"
+          fi
+
+      - name: Run integration tests (backend)
+        run: |
+          if [ -d backend ] && [ -d backend/tests ]; then
+            cd backend
+            python -m pip install --upgrade pip
+            if [ -f pyproject.toml ]; then
+              python -m pip install -e .
+            fi
+            pytest -q tests/integration
+          else
+            echo "No backend integration tests found; skipping"
+          fi
+      - name: Teardown
+        if: always()
+        run: |
+          if [ -f docker-compose.local.yml ]; then
+            docker compose -f docker-compose.local.yml down --remove-orphans
+          fi
