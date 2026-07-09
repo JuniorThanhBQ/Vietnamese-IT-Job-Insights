@@ -1,0 +1,30 @@
+name: Production branch deployment workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: deploy-production-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  ci-pipeline:
+    name: Run CI Pipeline
+    uses: ./.github/workflows/full-ci-commit-workflow.yml

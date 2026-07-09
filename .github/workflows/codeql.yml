@@ -6,8 +6,9 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '24 5 * * 4'
+    - cron: '0 1 * * 6'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   actions: read
@@ -16,7 +17,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze (${{ matrix.language }})
+    name: CodeQL - ${{ matrix.language }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -44,4 +45,3 @@ jobs:
         uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
         with:
           category: "/language:${{ matrix.language }}"
-          

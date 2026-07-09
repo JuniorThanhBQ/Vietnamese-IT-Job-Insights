@@ -4,7 +4,7 @@ set -euo pipefail
 if [ -f "package.json" ]; then
   echo "Node project detected."
   echo "detected=true" >> "$GITHUB_OUTPUT"
-  
+
   if [ -f "yarn.lock" ]; then
     echo "manager=yarn" >> "$GITHUB_OUTPUT"
     echo "command=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"

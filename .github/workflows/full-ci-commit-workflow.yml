@@ -1,0 +1,39 @@
+name: Full CI Commit Workflow
+
+on:
+  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_call:
+
+concurrency:
+  group: full-ci-pipeline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  build:
+    name: Build Stage
+    uses: ./.github/workflows/build-workflow.yml
+
+  lint:
+    name: Lint Stage
+    needs: build
+    uses: ./.github/workflows/lint-workflow.yml
+
+  security:
+    name: Security Stage
+    needs: lint
+    uses: ./.github/workflows/security-workflow-reusable.yml
+
+  testing:
+    name: Testing Stage
+    needs: security
+    uses: ./.github/workflows/testing-workflow.yml

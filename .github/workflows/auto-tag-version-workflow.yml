@@ -20,4 +20,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: bash scripts/auto-tag-version.sh
-          

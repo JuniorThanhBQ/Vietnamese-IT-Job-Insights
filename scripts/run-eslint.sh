@@ -11,6 +11,6 @@ else
   if ! npx eslint --version &> /dev/null; then
     npm install --no-save eslint
   fi
-  
+
   npx eslint . --max-warnings=0
 fi

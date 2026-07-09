@@ -20,4 +20,3 @@ jobs:
           dirtyLabel: "conflicts"
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           commentOnDirty: "This pull request has a merge conflict that needs to be resolved."
-          

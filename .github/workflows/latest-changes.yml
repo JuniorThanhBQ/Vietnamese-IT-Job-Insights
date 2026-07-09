@@ -33,9 +33,8 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: ${{ github.event.repository.default_branch }}
-
           token: ${{ secrets.LATEST_CHANGES }} # zizmor: ignore[secrets-outside-env]
-          persist-credentials: true 
+          persist-credentials: true
       - uses: tiangolo/latest-changes@c9b73efbc8992ef1a401e4235ea307a8ca8a724b
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,4 +43,3 @@ jobs:
           end_regex: "^## "
           debug_logs: true
           label_header_prefix: "### "
-          

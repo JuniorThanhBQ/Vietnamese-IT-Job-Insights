@@ -1,13 +1,20 @@
-name: Staging branch deployment workflow
+name: Dev branch deployment workflow
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'release/**'
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 concurrency:
-  group: deploy-staging-${{ github.workflow }}-${{ github.ref }}
+  group: deploy-dev-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
