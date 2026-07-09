@@ -11,7 +11,7 @@ else
   echo "Docker Compose files detected:"
   echo "$COMPOSE_FILES"
   echo "has_compose=true" >> "$GITHUB_OUTPUT"
-  
+
   FILES_INLINE=$(echo "$COMPOSE_FILES" | tr '\n' ' ')
   echo "compose_files=$FILES_INLINE" >> "$GITHUB_OUTPUT"
 fi

@@ -1,0 +1,21 @@
+name: Staging branch deployment workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'release/**'
+
+concurrency:
+  group: deploy-staging-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  ci-pipeline:
+    name: Run CI Pipeline
+    uses: ./.github/workflows/full-ci-commit-workflow.yml

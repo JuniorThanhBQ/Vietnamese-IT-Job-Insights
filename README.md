@@ -3,13 +3,13 @@ This project was created for two purposes. The first purpose is to provide an en
 
 ## I. Project Description
 ### 1. Main goal
-The main goal of this project is the   
-    
+The main goal of this project is the
+
 ### 2. Aim
 There are three aim for this project based on the main goal.
-1. Firstly,    
-2. Secondly, 
-3. Finally, 
+1. Firstly,
+2. Secondly,
+3. Finally,
 
 
 ## II. Technologies
@@ -24,7 +24,7 @@ Not available
 ## VI. How to use it
 Not available
 
-## VII. Deployment 
+## VII. Deployment
 Not available
 
 ## VIII. Documentation

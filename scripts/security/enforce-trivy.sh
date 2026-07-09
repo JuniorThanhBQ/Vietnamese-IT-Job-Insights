@@ -6,7 +6,7 @@ trivy fs . --scanners vuln,secret,misconfig \
   --severity HIGH,CRITICAL \
   --format table \
   --exit-code 1 || {
-    echo "::error::Trivy scan phát hiện lỗ hổng/cấu hình sai mức độ HIGH/CRITICAL. Xem bảng kết quả bên trên để tìm cách khắc phục."
+    echo "::error::Trivy scan detected HIGH/CRITICAL vulnerabilities or misconfigurations. See the results above for remediation guidance."
     exit 1
   }
 echo "✅ Trivy scan passed."

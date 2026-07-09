@@ -1,4 +1,4 @@
-name: "Conflict detector"
+name: conflict detector
 on:
   push:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
@@ -7,7 +7,7 @@ on:
 permissions: {}
 
 jobs:
-  main:
+  merge-conflict-check:
     permissions:
       contents: read
       pull-requests: write
@@ -20,4 +20,3 @@ jobs:
           dirtyLabel: "conflicts"
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           commentOnDirty: "This pull request has a merge conflict that needs to be resolved."
-          
