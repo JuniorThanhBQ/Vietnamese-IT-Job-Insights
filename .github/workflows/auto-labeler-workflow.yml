@@ -1,4 +1,5 @@
 name: Auto Label Workflow
+
 on:
   pull_request_target: # zizmor: ignore[dangerous-triggers]
     types:
@@ -18,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 
+    - uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213
       if: ${{ github.event.action != 'labeled' && github.event.action != 'unlabeled' }}
     - run: echo "Done adding labels"
 
@@ -30,8 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: agilepathway/label-checker@c3d16ad512e7cea5961df85ff2486bb774caf3c5 
+      - uses: agilepathway/label-checker@c3d16ad512e7cea5961df85ff2486bb774caf3c5
         with:
-          one_of: feature,bug,hotfix,refactor,enhancement,security,documentation
+          any_of: feature,bug,hotfix,refactor,enhancement,security,documentation,tag,release
           none_of: duplicate,invalid,wontfix
           repo_token: ${{ secrets.GITHUB_TOKEN }}

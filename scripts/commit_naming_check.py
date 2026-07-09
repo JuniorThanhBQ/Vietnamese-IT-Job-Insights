@@ -14,7 +14,7 @@ def call_api(url):
     req = urllib.request.Request(url)
     req.add_header("Authorization", f"Bearer {TOKEN}")
     req.add_header("Accept", "application/vnd.github.v3+json")
-    
+
     for attempt in range(3):
         try:
             with urllib.request.urlopen(req) as resp:
@@ -25,7 +25,7 @@ def call_api(url):
         except URLError as e:
             print(f"URLError {e.reason} for {url}. Retrying...", file=sys.stderr)
             time.sleep(2)
-            
+
     print(f"Failed to fetch API after 3 attempts: {url}", file=sys.stderr)
     sys.exit(1)
 
@@ -47,35 +47,35 @@ def get_all_pages(base_url):
 def detect_spam(text):
     if not text:
         return None
-        
+
     text_no_url = re.sub(r'https?://\S+', '', text)
-    
+
     if re.search(r'(.)\1{7,}', text_no_url, re.IGNORECASE):
         return "Repeated characters"
-        
+
     if re.search(r'(.{3,})\1{3,}', text_no_url, re.IGNORECASE):
         return "Repeated patterns"
-        
+
     known_smashes = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'asdfasdf']
     lower_text = text_no_url.lower()
     for smash in known_smashes:
         if len(smash) >= 8 and smash in lower_text:
             return f"Keyboard sequence ({smash})"
-            
+
     words = text_no_url.split()
     for word in words:
         if len(word) > 20:
             vowels = sum(1 for c in word.lower() if c in 'aeiouy')
             if vowels == 0:
                 return "Random meaningless string (no vowels)"
-                
+
             consonant_ratio = (len(word) - vowels) / len(word)
             if consonant_ratio > 0.9:
                 return "Random meaningless string (high consonant ratio)"
-                
+
         if re.search(r'[^aeiouy0-9\W_]{8,}', word, re.IGNORECASE):
             return "Random meaningless string (8+ consonants in a row)"
-            
+
     return None
 
 def main():
@@ -84,19 +84,19 @@ def main():
     print("Fetching repository labels...")
     labels_data = get_all_pages(f"https://api.github.com/repos/{REPO}/labels")
     repo_labels = {l['name'].strip().lower(): l['name'] for l in labels_data}
-    
+
     print("Fetching Pull Request commits...\n")
     commits_data = get_all_pages(f"https://api.github.com/repos/{REPO}/pulls/{PR_NUMBER}/commits")
-    
+
     has_error = False
 
     for commit_obj in commits_data:
         sha = commit_obj['sha']
         msg = commit_obj['commit']['message']
-        
+
         print(f"--- Checking Commit: {sha} ---")
         print(f"Message:\n{msg}\n")
-        
+
         parts = msg.strip().split('\n\n', 1)
         title = parts[0].strip()
         body = parts[1].strip() if len(parts) > 1 else ""

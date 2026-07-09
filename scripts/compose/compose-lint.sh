@@ -9,7 +9,7 @@ echo "Running Compose lint for dangerous configurations..."
 for file in $COMPOSE_FILES; do
   echo "--- Linting $file ---"
   checkov --file "$file" --framework docker_compose --compact || {
-    echo "::error file=$file::Compose Lint phát hiện cấu hình nguy hiểm/thiếu bảo mật trong $file. Vui lòng kiểm tra log để biết chi tiết và cách khắc phục."
+    echo "::error file=$file::Compose Lint detected dangerous or insecure configuration in $file. Please check the logs for details and remediation steps."
     exit 1
   }
 done
