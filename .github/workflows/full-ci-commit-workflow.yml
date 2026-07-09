@@ -16,8 +16,6 @@ concurrency:
 permissions:
   actions: read
   contents: read
-  security-events: write
-  issues: write
 
 jobs:
   build:
@@ -32,6 +30,10 @@ jobs:
   security:
     name: Security Stage Workflow
     needs: lint
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: ./.github/workflows/security-workflow.yml
 
   testing:

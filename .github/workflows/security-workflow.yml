@@ -13,15 +13,12 @@ concurrency:
 permissions:
   actions: read
   contents: read
-  issues: write
-  security-events: write
 
 jobs:
   secret-scan:
     name: Secret Scanning
     permissions:
       contents: read
-      issues: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -158,6 +155,9 @@ jobs:
     needs: codeql-scan
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout Code
