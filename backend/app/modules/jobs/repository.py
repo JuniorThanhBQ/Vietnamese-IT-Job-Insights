@@ -42,7 +42,6 @@ class JobRepository:
             if filters.employment_type:
                 conditions.append(Job.employment_type == filters.employment_type.value)
             if filters.min_salary:
-                # Filter for jobs where min_salary matches or max_salary is greater than the filter
                 conditions.append(Job.salary_min >= filters.min_salary)
 
             if conditions:

@@ -38,18 +38,14 @@ class JobService:
         Creates or updates a job posting.
         Implements SHA-256 change detection to avoid duplicate DB writes.
         """
-        # Validate that the parent company profile exists
         await CompanyService.get_company(db, job_in.company_id)
 
-        # Check if job already exists via URL (source constraint)
         existing_job = await JobRepository.get_by_url(db, job_in.url)
 
         if existing_job:
-            # Change detection: bypass update if content_hash matches
             if existing_job.content_hash == job_in.content_hash:
                 return existing_job
 
-            # Content changed: update fields
             existing_job.title = job_in.title
             existing_job.salary_min = job_in.salary_min
             existing_job.salary_max = job_in.salary_max
@@ -78,5 +74,4 @@ class JobService:
             await db.refresh(existing_job)
             return existing_job
 
-        # Job is brand new: create it
         return await JobRepository.create(db, job_in)

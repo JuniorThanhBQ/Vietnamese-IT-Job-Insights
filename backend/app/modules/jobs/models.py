@@ -67,7 +67,6 @@ class JobResponse(JobBase):
     created_date: datetime
     updated_date: datetime
 
-    # Enable serialization of SQLAlchemy ORM objects
     model_config = ConfigDict(from_attributes=True)
 
 

@@ -34,7 +34,7 @@ The AI Agent works as a **Principal Data Engineer + Senior Web Scraping Engineer
 
 ## 4. AGENTIC RULES & GUIDELINES
 * **Language Rule:** Always write code, comments, documentation, logs, and markdown files **inside the repository in English**. Communication with the user in the chat interface (outside the repository) can be in Vietnamese or the user's preferred language.
-* **History Management:** Every working day with code changes approved by the user (Accept) must be logged in the `docs/agentic-history/` directory.
+* **History Management:** Every working day with code changes approved by the user (Accept) must be logged in the `docs/agentic/agentic-history/` directory.
   * Format: `YYYY-MM-DD.md` (written in English).
   * Content: Concise report outlining: Requested task -> Applied solution -> Actions taken in the repository.
 * **Privacy & Relative Paths Rule:** Never write absolute local file paths (e.g., containing drive letters like `C:/`, or local username directories like `/Users/Angela_Mikolas/`) in any documentation, markdown files, readmes, or history logs in this repository. All links and file references must be relative to the repository root (e.g., `backend/AGENTS.md` or starting from `Vietnamese-Software-Engineer-JD-Insights/...`) to ensure no local system or user information is pushed to public repositories.
