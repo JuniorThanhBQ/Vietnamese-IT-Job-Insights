@@ -73,3 +73,6 @@ disable = [
 
 [tool.pylint.format]
 max-line-length = 120
+
+[tool.setuptools.packages.find]
+include = ["app*"]
