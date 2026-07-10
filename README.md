@@ -45,3 +45,4 @@ Will be available after the project is finished
 - [Architecture](docs/architecture/)
 - [References](docs/references/)
 - [Weekly Report](docs/weekly-report/)
+- [Agentic Usage History](docs/agentic-history/)

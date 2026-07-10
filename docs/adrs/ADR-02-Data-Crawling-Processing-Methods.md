@@ -1,7 +1,7 @@
 # ADR-02: Playwright with Celery and the data crawling pipeline
 
 ## Status
-Pending
+Approved
 
 ## Context
 The project collects job postings from IT recruitment websites such as TopDev and ITviec. These websites rely heavily on JavaScript to render their content, so a traditional HTTP crawler cannot always retrieve the required information.
@@ -45,4 +45,4 @@ The crawling workflow is:
 * Changes to the target websites may require updates to the crawler.
 
 ## Decision Date
-Pending until 21:00 – 10/07/2026
+Approved on 10/07/2026
