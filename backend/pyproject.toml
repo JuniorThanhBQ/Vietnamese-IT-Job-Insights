@@ -10,11 +10,69 @@ dependencies = [
     "pydantic-settings>=2.4.0",
     "sqlalchemy[asyncio]>=2.0.35",
     "aiosqlite>=0.10.0",
-    "python-jose[cryptography]>=3.6.0",
-    "passlib[bcrypt]>=1.8.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
     "httpx>=0.27.0",
+    "alembic>=1.13.0",
+]
+
+[project.optional-dependencies]
+dev = [
     "pytest>=8.3.0",
+    "pre-commit>=4.6.0",
+    "import-linter>=2.0",
+    "pylint>=3.2.0",
+]
+crawler = [
+    "playwright>=1.49.0",
+    "selectolax>=0.3.21",
+    "celery>=5.4.0",
+    "redis>=5.2.1",
+    "asyncpg>=0.30.0",
+    "loguru>=0.7.2",
+    "psutil>=6.1.0",
+    "pgvector>=0.3.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.importlinter]
+root_packages = ["app"]
+
+[[tool.importlinter.contracts]]
+id = "layered-by-module"
+name = "Layered architecture within each module"
+type = "layers"
+containers = ["app.modules.*"]
+layers = [
+    "routers",
+    "views",
+    "services",
+    "repository",
+    "models",
+]
+
+[tool.pylint.main]
+fail-under = 7.0
+ignore = ["tests"]
+jobs = 0
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "R0903", # too-few-public-methods
+    "R0913", # too-many-arguments
+    "R0917", # too-many-positional-arguments
+    "C0103", # invalid-name
+    "W0621", # redefined-outer-name
+    "W0613", # unused-argument
+]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.setuptools.packages.find]
+include = ["app*"]
