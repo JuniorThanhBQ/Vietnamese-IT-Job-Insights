@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     LOG_LEVEL: str = "INFO"
+    GEMINI_API_KEY: str = ""
 
     # Support reading from .env in either current directory or parent directory
     model_config = SettingsConfigDict(

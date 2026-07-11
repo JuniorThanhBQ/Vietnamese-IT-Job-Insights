@@ -1,8 +1,9 @@
 from uuid import UUID
+from datetime import datetime
 from typing import Sequence, Optional
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.db_models import Job
+from app.models.db_models import Job, JobEmbedding
 from app.modules.jobs.models import JobCreate, JobFilterParams
 
 
@@ -84,3 +85,46 @@ class JobRepository:
         await db.commit()
         await db.refresh(db_job)
         return db_job
+
+    @staticmethod
+    async def upsert_embedding(
+        db: AsyncSession, job_id: UUID, embedding_vector: list[float]
+    ) -> JobEmbedding:
+        """Upsert a job embedding vector."""
+        result = await db.execute(
+            select(JobEmbedding).where(JobEmbedding.job_id == job_id)
+        )
+        db_embedding = result.scalar_one_or_none()
+        if db_embedding:
+            db_embedding.embedding = embedding_vector
+            db_embedding.updated_date = datetime.utcnow()
+        else:
+            db_embedding = JobEmbedding(
+                job_id=job_id,
+                embedding=embedding_vector,
+                created_date=datetime.utcnow(),
+                updated_date=datetime.utcnow(),
+            )
+            db.add(db_embedding)
+        await db.commit()
+        return db_embedding
+
+    @staticmethod
+    async def search_similar_jobs(
+        db: AsyncSession, query_vector: list[float], limit: int = 10
+    ) -> Sequence[tuple[Job, float]]:
+        """
+        Perform a semantic similarity search using pgvector cosine distance.
+        Returns a sequence of tuples containing the Job and its similarity score.
+        """
+        distance_expr = JobEmbedding.embedding.cosine_distance(query_vector)
+        stmt = (
+            select(Job, distance_expr.label("distance"))
+            .join(JobEmbedding, Job.id == JobEmbedding.job_id)
+            .where(Job.is_active)
+            .order_by("distance")
+            .limit(limit)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+        return [(row[0], 1.0 - float(row[1])) for row in rows]

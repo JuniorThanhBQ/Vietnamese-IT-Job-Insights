@@ -1,11 +1,13 @@
 from uuid import UUID
 from typing import Sequence, Optional
 from fastapi import HTTPException, status
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.db_models import Job
 from app.modules.companies.services import CompanyService
 from app.modules.jobs.models import JobCreate, JobFilterParams
 from app.modules.jobs.repository import JobRepository
+from app.modules.jobs.embedding_service import GeminiEmbeddingService
 
 
 class JobService:
@@ -72,6 +74,39 @@ class JobService:
 
             await db.commit()
             await db.refresh(existing_job)
+            await JobService._generate_and_save_embedding(db, existing_job)
             return existing_job
 
-        return await JobRepository.create(db, job_in)
+        job = await JobRepository.create(db, job_in)
+        await JobService._generate_and_save_embedding(db, job)
+        return job
+
+    @staticmethod
+    async def _generate_and_save_embedding(db: AsyncSession, job: Job) -> None:
+        """
+        Generate embedding for the job and save it to the database.
+        Fails silently to ensure that job creation does not crash if Gemini API fails.
+        """
+        try:
+            embedding_service = GeminiEmbeddingService()
+            text_to_embed = (
+                f"Title: {job.title}\n"
+                f"Description: {job.description}\n"
+                f"Requirements: {job.requirements or ''}"
+            )
+            embedding_vector = await embedding_service.get_embedding(text_to_embed)
+            await JobRepository.upsert_embedding(db, job.id, embedding_vector)
+            logger.info(f"Generated and saved embedding for job: {job.id}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error(f"Failed to generate embedding for job {job.id}: {e}")
+
+    @staticmethod
+    async def search_jobs_semantically(
+        db: AsyncSession, query: str, limit: int = 10
+    ) -> Sequence[tuple[Job, float]]:
+        """
+        Perform a semantic search for jobs matching the query text.
+        """
+        embedding_service = GeminiEmbeddingService()
+        query_vector = await embedding_service.get_embedding(query)
+        return await JobRepository.search_similar_jobs(db, query_vector, limit)

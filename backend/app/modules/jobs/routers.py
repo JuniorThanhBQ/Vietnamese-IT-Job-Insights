@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import get_db
 from app.modules.jobs.models import (
@@ -10,8 +11,11 @@ from app.modules.jobs.models import (
     Seniority,
     RemotePolicy,
     EmploymentType,
+    JobSemanticSearchResponse,
+    ChatRequest,
 )
 from app.modules.jobs.views import JobViews
+
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -38,6 +42,16 @@ async def list_jobs(
     return await JobViews.list_jobs(db, limit=limit, offset=offset, filters=filters)
 
 
+@router.get("/search", response_model=List[JobSemanticSearchResponse])
+async def search_jobs(
+    q: str = Query(..., description="Query string for semantic search"),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+):
+    """Semantic similarity search for job postings using pgvector."""
+    return await JobViews.search_jobs_semantically(db, query=q, limit=limit)
+
+
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(job_id: UUID, db: AsyncSession = Depends(get_db)):
     """Fetch a specific job posting details by ID."""
@@ -48,3 +62,19 @@ async def get_job(job_id: UUID, db: AsyncSession = Depends(get_db)):
 async def post_job(job_in: JobCreate, db: AsyncSession = Depends(get_db)):
     """Publish a new job posting or update it if already registered."""
     return await JobViews.post_job(db, job_in)
+
+
+@router.post("/chat")
+async def chat_assistant(
+    request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    RAG virtual assistant chat endpoint.
+    Streams model response with retrieved jobs context.
+    """
+    history = request.history or []
+    return StreamingResponse(
+        JobViews.stream_chat(db, query=request.message, history=history),
+        media_type="text/event-stream",
+    )

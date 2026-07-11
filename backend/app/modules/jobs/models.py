@@ -76,3 +76,18 @@ class JobFilterParams(BaseModel):
     remote_policy: Optional[RemotePolicy] = None
     employment_type: Optional[EmploymentType] = None
     min_salary: Optional[float] = None
+
+
+class JobSemanticSearchResponse(BaseModel):
+    job: JobResponse
+    similarity_score: float
+
+
+class ChatMessage(BaseModel):
+    role: str  # "user" | "model"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[list[ChatMessage]] = None

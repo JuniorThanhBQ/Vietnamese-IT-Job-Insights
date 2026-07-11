@@ -1,8 +1,16 @@
+import json
 from uuid import UUID
-from typing import List, Optional
+from typing import List, Optional, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.modules.jobs.models import JobCreate, JobResponse, JobFilterParams
+from app.modules.jobs.models import (
+    JobCreate,
+    JobResponse,
+    JobFilterParams,
+    JobSemanticSearchResponse,
+    ChatMessage,
+)
 from app.modules.jobs.services import JobService
+from app.modules.jobs.rag_service import GeminiChatService
 
 
 class JobViews:
@@ -27,3 +35,25 @@ class JobViews:
         """Create or update a job and return serialized response."""
         db_job = await JobService.post_job(db, job_in)
         return JobResponse.model_validate(db_job)
+
+    @staticmethod
+    async def search_jobs_semantically(
+        db: AsyncSession, query: str, limit: int
+    ) -> List[JobSemanticSearchResponse]:
+        """Fetch semantically similar jobs and return serialized responses with scores."""
+        results = await JobService.search_jobs_semantically(db, query, limit)
+        return [
+            JobSemanticSearchResponse(
+                job=JobResponse.model_validate(job), similarity_score=score
+            )
+            for job, score in results
+        ]
+
+    @staticmethod
+    async def stream_chat(
+        db: AsyncSession, query: str, history: List[ChatMessage]
+    ) -> AsyncGenerator[str, None]:
+        """Expose chat streaming generator and format as SSE data lines."""
+        chat_service = GeminiChatService()
+        async for chunk in chat_service.stream_chat(db, query, history):
+            yield f"data: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
