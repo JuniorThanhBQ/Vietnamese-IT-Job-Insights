@@ -51,25 +51,29 @@ To ensure the system conforms to the user requirements and low-resource limitati
 
 ## 3. Future Execution Roadmap
 
-### Phase 1: Crawler Automation (Scheduling & Orchestration)
-* **Celery Integration:** Configure Celery workers connected to the Alpine Redis broker. Enforce strict memory limits (e.g., `worker_max_memory_per_child`) to prevent long-running crawler tasks from causing Out-Of-Memory (OOM) errors.
-* **List Scraping Logic:** Implement the pagination crawling logic to fetch job lists from ITviec and TopDev, extracting individual job URLs to feed into the existing [job_pipeline.py](../../../crawler/pipelines/job_pipeline.py).
-* **Beat Scheduler:** Configure Celery Beat to schedule recurring crawl jobs (e.g., running daily at low-traffic hours like 2:00 AM) to maintain an up-to-date database.
-* **Error Handling & Retries:** Implement exponential backoff for failed fetch attempts and proxy rotation triggers if 403/429 HTTP errors are encountered.
+### Phase 1: Crawler Automation (Scheduling & Orchestration) [COMPLETED]
+* **[x] Celery Integration:** Configure Celery workers connected to the Alpine Redis broker. Enforce strict memory limits (e.g., `worker_max_memory_per_child`) to prevent long-running crawler tasks from causing Out-Of-Memory (OOM) errors.
+* **[x] List Scraping Logic:** Implement the pagination crawling logic to fetch job lists from ITviec and TopDev, extracting individual job URLs to feed into the existing [job_pipeline.py](../../../crawler/pipelines/job_pipeline.py).
+* **[x] Beat Scheduler:** Configure Celery Beat to schedule recurring crawl jobs (e.g., running daily at low-traffic hours like 2:00 AM) to maintain an up-to-date database.
+* **[x] Error Handling & Retries:** Implement exponential backoff for failed fetch attempts and proxy rotation triggers if 403/429 HTTP errors are encountered.
 
-### Phase 2: Embedding Generation & Vector Search
-* **Embedding Pipeline:** Create a service to generate vector embeddings from job descriptions and requirements. To maintain low local resource usage, utilize a cloud-based API (like Gemini) rather than hosting heavy local embedding models.
-* **Database Vectorization:** Store generated embeddings in the PostgreSQL database using the `pgvector` extension.
-* **Similarity Search API:** Develop FastAPI endpoints utilizing `pgvector` operators (Cosine Distance or Inner Product) to query jobs matching specific technical descriptions or semantic concepts.
 
-### Phase 3: RAG Integration (AI Chatbot)
-* **LangChain Orchestration:** Integrate LangChain to bridge the FastAPI backend with the Gemini API.
-* **Contextual Retrieval:** Build a retrieval chain that takes user queries, converts them to embeddings, fetches the top-K most relevant job postings via the Vector Search API, and feeds them into the prompt context.
-* **Assistant Endpoint:** Expose a streaming chat endpoint (`text/event-stream`) for the React frontend, allowing users to ask natural language questions (e.g., "What are the requirements for a Mid-level Python dev in Ho Chi Minh?").
+### Phase 2: Embedding Generation & Vector Search [COMPLETED]
+* **[x] Embedding Pipeline:** Create a service to generate vector embeddings from job descriptions and requirements. To maintain low local resource usage, utilize a cloud-based API (like Gemini) rather than hosting heavy local embedding models.
+* **[x] Database Vectorization:** Store generated embeddings in the PostgreSQL database using the `pgvector` extension.
+* **[x] Similarity Search API:** Develop FastAPI endpoints utilizing `pgvector` operators (Cosine Distance or Inner Product) to query jobs matching specific technical descriptions or semantic concepts.
 
-### Phase 4: Trend Analytics API
-* **Statistical Aggregation:** Create specialized SQLAlchemy queries to calculate market trends: average salaries by seniority, demand percentages for specific tech stacks (e.g., React vs. Angular), and the prevalence of remote/hybrid work policies.
-* **Caching Strategy:** Since aggregations are computationally heavy for low-spec databases, cache the JSON responses of these analytics in Redis with a Time-To-Live (TTL) of 12-24 hours.
+
+### Phase 3: RAG Integration (AI Chatbot) [COMPLETED]
+* **[x] LangChain Orchestration:** Integrate LangChain to bridge the FastAPI backend with the Gemini API.
+* **[x] Contextual Retrieval:** Build a retrieval chain that takes user queries, converts them to embeddings, fetches the top-K most relevant job postings via the Vector Search API, and feeds them into the prompt context.
+* **[x] Assistant Endpoint:** Expose a streaming chat endpoint (`text/event-stream`) for the React frontend, allowing users to ask natural language questions (e.g., "What are the requirements for a Mid-level Python dev in Ho Chi Minh?").
+
+
+### Phase 4: Trend Analytics API [COMPLETED]
+* **[x] Statistical Aggregation:** Create specialized SQLAlchemy queries to calculate market trends: average salaries by seniority, demand percentages for specific tech stacks (e.g., React vs. Angular), and the prevalence of remote/hybrid work policies.
+* **[x] Caching Strategy:** Since aggregations are computationally heavy for low-spec databases, cache the JSON responses of these analytics in Redis with a Time-To-Live (TTL) of 12-24 hours.
+
 
 ### Phase 5: React Frontend UI Development
 * **Framework & Styling:** Initialize a React 19 project using Vite. Strictly use Vanilla CSS for styling to keep the frontend lightweight, avoiding heavy UI libraries unless necessary.
