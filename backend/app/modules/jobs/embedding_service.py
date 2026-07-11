@@ -1,18 +1,22 @@
 # pylint: disable=duplicate-code
+"""
+Service for generating text embeddings using the Gemini REST API.
+"""
+
 import httpx
 from loguru import logger
 from app.config import settings
 
 
+# pylint: disable=too-few-public-methods
 class GeminiEmbeddingService:
     """
     Service to generate text embeddings using Gemini API with API key rotation.
     """
 
     def __init__(self):
-        self._keys = [
-            k.strip() for k in settings.GEMINI_API_KEY.split(",") if k.strip()
-        ]
+        raw_keys = settings.GEMINI_API_KEY.replace(";", ",")
+        self._keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
         self._current_key_idx = 0
 
     def _rotate_key(self) -> None:
@@ -40,11 +44,12 @@ class GeminiEmbeddingService:
                 api_key = self._keys[self._current_key_idx]
                 url = (
                     "https://generativelanguage.googleapis.com/v1beta/models/"
-                    f"text-embedding-004:embedContent?key={api_key}"
+                    f"gemini-embedding-001:embedContent?key={api_key}"
                 )
                 payload = {
-                    "model": "models/text-embedding-004",
+                    "model": "models/gemini-embedding-001",
                     "content": {"parts": [{"text": cleaned_text}]},
+                    "outputDimensionality": 768,
                 }
 
                 try:
@@ -66,10 +71,12 @@ class GeminiEmbeddingService:
 
                 except httpx.RequestError as exc:
                     logger.error(
-                        f"HTTP Request error on Gemini API (attempt {attempt + 1}/{max_attempts}): {exc}"
+                        f"HTTP Request error on Gemini API "
+                        f"(attempt {attempt + 1}/{max_attempts}): {exc}"
                     )
                     self._rotate_key()
 
         raise RuntimeError(
-            "Failed to generate embedding: all available Gemini API keys were exhausted or returned errors."
+            "Failed to generate embedding: "
+            "all available Gemini API keys were exhausted or returned errors."
         )

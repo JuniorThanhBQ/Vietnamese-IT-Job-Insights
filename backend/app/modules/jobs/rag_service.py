@@ -19,9 +19,8 @@ class GeminiChatService:
     """
 
     def __init__(self):
-        self._keys = [
-            k.strip() for k in settings.GEMINI_API_KEY.split(",") if k.strip()
-        ]
+        raw_keys = settings.GEMINI_API_KEY.replace(";", ",")
+        self._keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
         self._current_key_idx = 0
 
     def _rotate_key(self) -> None:
@@ -116,7 +115,7 @@ class GeminiChatService:
             api_key = self._keys[self._current_key_idx]
             url = (
                 "https://generativelanguage.googleapis.com/v1beta/models/"
-                f"gemini-1.5-flash:streamGenerateContent?key={api_key}&alt=sse"
+                f"gemini-2.5-flash:streamGenerateContent?key={api_key}&alt=sse"
             )
             payload = {
                 "contents": contents,

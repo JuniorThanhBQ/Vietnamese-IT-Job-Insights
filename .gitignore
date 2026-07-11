@@ -245,3 +245,6 @@ venv/
 .venv/
 
 .import_linter_cache/
+html_templates/
+
+scratch/

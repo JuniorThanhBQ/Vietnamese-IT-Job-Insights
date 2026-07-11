@@ -36,7 +36,11 @@ export function JobCard({ job, onSelect }) {
         <div className="space-y-2.5 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-gray-500 shrink-0" />
-            <span className="truncate">{job.company?.address || 'Việt Nam'}</span>
+            <span className="truncate">
+              {job.company?.address && job.company.address.toLowerCase() !== 'unknown'
+                ? job.company.address
+                : 'Chưa có thông tin'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -47,11 +51,19 @@ export function JobCard({ job, onSelect }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <Briefcase size={16} className="text-gray-500 shrink-0" />
-              <span>{job.seniority}</span>
+              <span>
+                {job.seniority && job.seniority.toLowerCase() !== 'unknown'
+                  ? job.seniority
+                  : 'Chưa có thông tin'}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <Globe size={16} className="text-gray-500 shrink-0" />
-              <span>{job.remote_policy}</span>
+              <span>
+                {job.remote_policy && job.remote_policy.toLowerCase() !== 'unknown'
+                  ? job.remote_policy
+                  : 'Chưa có thông tin'}
+              </span>
             </div>
           </div>
         </div>

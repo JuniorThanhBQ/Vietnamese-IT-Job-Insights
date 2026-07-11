@@ -1,12 +1,17 @@
 # pylint: disable=broad-exception-caught
 import asyncio
+import sys
+import os
 from loguru import logger
 from crawler.celery_app import celery_app
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend")))
 
 from crawler.base.crawler import BaseCrawler
 from crawler.pipelines.job_pipeline import JobPipeline
 from crawler.parser.itviec_list_parser import ITViecListParser
 from crawler.parser.topdev_list_parser import TopDevListParser
+from app.modules.jobs.archival_service import ArchivalService
 
 
 @celery_app.task(
@@ -53,7 +58,7 @@ def crawl_itviec_list_task(max_pages: int = 5) -> int:
             page = 1
             total_queued = 0
             while page <= max_pages:
-                url = f"https://itviec.com/it-jobs?page={page}"
+                url = f"https://itviec.com/it-jobs/software-engineer?page={page}"
                 logger.info(f"Fetching ITviec list page {page}: {url}")
                 try:
                     html = await crawler.fetch_page_html(url)
@@ -101,7 +106,7 @@ def crawl_topdev_list_task(max_pages: int = 5) -> int:
             page = 1
             total_queued = 0
             while page <= max_pages:
-                url = f"https://topdev.vn/viec-lam-it?page={page}"
+                url = f"https://topdev.vn/jobs/search?keyword=Software+Engineer&page={page}"
                 logger.info(f"Fetching TopDev list page {page}: {url}")
                 try:
                     html = await crawler.fetch_page_html(url)
@@ -146,3 +151,22 @@ def crawl_all_task(max_pages: int = 5) -> str:
     crawl_itviec_list_task.delay(max_pages)
     crawl_topdev_list_task.delay(max_pages)
     return "Crawl tasks dispatched"
+
+@celery_app.task(name="archive_stale_jobs_task")
+def archive_stale_jobs_task():
+    """
+    Task lập lịch hàng tuần để nén các job cũ (>90 ngày) ra định dạng Parquet
+    và xóa khỏi DB nhằm tối ưu dung lượng PostgreSQL.
+    """
+    storage_dir = "/app/cold-storage"
+    os.makedirs(storage_dir, exist_ok=True)
+
+    # Do ArchivalService là async, chạy bọc qua asyncio
+    archived_count = asyncio.run(
+        ArchivalService.archive_old_jobs(
+            days_old=90,
+            storage_dir=storage_dir,
+            batch_size=100
+        )
+    )
+    return f"Archived {archived_count} jobs successfully."

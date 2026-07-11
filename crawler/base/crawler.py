@@ -1,3 +1,6 @@
+"""
+Base crawler class based on Playwright.
+"""
 import asyncio
 import random
 from typing import Optional
@@ -72,7 +75,10 @@ class BaseCrawler:
         logger.info("Playwright browser initialized successfully.")
 
     async def _route_intercept(self, route) -> None:
-        """Intercept network requests to block unnecessary asset downloads (images, fonts, media)."""
+        """
+        Intercept network requests to block unnecessary asset downloads
+        (images, fonts, media).
+        """
         resource_type = route.request.resource_type
         if resource_type in ("image", "font", "media"):
             await route.abort()
@@ -113,6 +119,8 @@ class BaseCrawler:
             try:
                 logger.info(f"Navigating to: {url}")
                 await page.goto(url, wait_until="domcontentloaded")
+                # Wait 3 seconds for client-side JS/React rendering to complete
+                await page.wait_for_timeout(3000)
 
                 if wait_selector:
                     await page.wait_for_selector(wait_selector, timeout=self.timeout_ms)

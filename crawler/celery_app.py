@@ -37,6 +37,9 @@ celery_app.conf.beat_schedule = {
         "task": "crawler.tasks.crawl_all_task",
         "schedule": crontab(hour=2, minute=0),
         "args": (5,),
+    },'archive-jobs-every-sunday-1am': {
+        'task': 'archive_stale_jobs_task',
+        'schedule': crontab(hour=1, minute=0, day_of_week='sun'),
     },
 }
 

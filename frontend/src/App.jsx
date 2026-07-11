@@ -359,7 +359,10 @@ export default function App() {
                       Địa điểm
                     </span>
                     <span className="text-xs text-gray-300 font-semibold truncate block">
-                      {selectedJob.company?.address || 'Việt Nam'}
+                      {selectedJob.company?.address &&
+                      selectedJob.company.address.toLowerCase() !== 'unknown'
+                        ? selectedJob.company.address
+                        : 'Chưa có thông tin'}
                     </span>
                   </div>
                 </div>
@@ -387,7 +390,10 @@ export default function App() {
                       Làm việc
                     </span>
                     <span className="text-xs text-gray-300 font-semibold block">
-                      {selectedJob.remote_policy}
+                      {selectedJob.remote_policy &&
+                      selectedJob.remote_policy.toLowerCase() !== 'unknown'
+                        ? selectedJob.remote_policy
+                        : 'Chưa có thông tin'}
                     </span>
                   </div>
                 </div>

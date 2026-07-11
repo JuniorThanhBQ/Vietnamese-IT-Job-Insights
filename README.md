@@ -31,7 +31,7 @@ A detailed description of the system architecture is provided in [ADR-01-Softwar
 [Architecture overview image (not available)](docs/architectures/)
 
 ## V. Showcase
-Will be available after the project is finished
+![showcase.png](docs/showcase/image.png)
 
 ## VI. How to use it
 Will be available after the project is finished

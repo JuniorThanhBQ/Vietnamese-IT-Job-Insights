@@ -1,4 +1,8 @@
-import asyncio
+"""
+Service layer managing IT recruitment market trend statistics and dashboard metrics.
+Integrates Redis caching to prevent database load on frequent dashboard queries.
+"""
+
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.jobs.repository import JobRepository
@@ -22,6 +26,7 @@ ANALYTICS_KEYWORDS = [
 ]
 
 
+# pylint: disable=too-few-public-methods
 class AnalyticsService:
     """Service layer managing IT job market trend statistics with Redis caching."""
 
@@ -38,19 +43,14 @@ class AnalyticsService:
         if cached_data is not None:
             return cached_data
 
-        # Step 2: Cache miss - run database queries concurrently
+        # Step 2: Cache miss - run database queries sequentially to prevent Session conflicts
         logger.info("Cache miss for analytics overview. Querying database...")
         try:
-            (
-                salaries,
-                remote_policies,
-                locations,
-                tech_stacks,
-            ) = await asyncio.gather(
-                JobRepository.get_salary_trends_by_seniority(db),
-                JobRepository.get_remote_policy_distribution(db),
-                JobRepository.get_location_distribution(db),
-                JobRepository.get_tech_stack_demand(db, ANALYTICS_KEYWORDS),
+            salaries = await JobRepository.get_salary_trends_by_seniority(db)
+            remote_policies = await JobRepository.get_remote_policy_distribution(db)
+            locations = await JobRepository.get_location_distribution(db)
+            tech_stacks = await JobRepository.get_tech_stack_demand(
+                db, ANALYTICS_KEYWORDS
             )
 
             payload = {

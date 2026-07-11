@@ -34,19 +34,19 @@ export function Analytics({ data, loading }) {
 
   // Format remote policies data
   const remoteData = Object.entries(data.remote_policies || {}).map(([name, value]) => ({
-    name,
+    name: name.toLowerCase() === 'unknown' ? 'Chưa có thông tin' : name,
     value,
   }));
 
   // Format locations data
   const locationData = Object.entries(data.locations || {}).map(([name, value]) => ({
-    name,
+    name: name.toLowerCase() === 'unknown' ? 'Chưa có thông tin' : name,
     value,
   }));
 
   // Format salary data (convert to Million VND)
   const salaryData = (data.salary_trends || []).map((item) => ({
-    seniority: item.seniority,
+    seniority: item.seniority.toLowerCase() === 'unknown' ? 'Chưa có thông tin' : item.seniority,
     Min: parseFloat((item.avg_min_vnd / 1000000).toFixed(1)),
     Max: parseFloat((item.avg_max_vnd / 1000000).toFixed(1)),
   }));
