@@ -51,11 +51,12 @@ To ensure the system conforms to the user requirements and low-resource limitati
 
 ## 3. Future Execution Roadmap
 
-### Phase 1: Crawler Automation (Scheduling & Orchestration)
-* **Celery Integration:** Configure Celery workers connected to the Alpine Redis broker. Enforce strict memory limits (e.g., `worker_max_memory_per_child`) to prevent long-running crawler tasks from causing Out-Of-Memory (OOM) errors.
-* **List Scraping Logic:** Implement the pagination crawling logic to fetch job lists from ITviec and TopDev, extracting individual job URLs to feed into the existing [job_pipeline.py](../../../crawler/pipelines/job_pipeline.py).
-* **Beat Scheduler:** Configure Celery Beat to schedule recurring crawl jobs (e.g., running daily at low-traffic hours like 2:00 AM) to maintain an up-to-date database.
-* **Error Handling & Retries:** Implement exponential backoff for failed fetch attempts and proxy rotation triggers if 403/429 HTTP errors are encountered.
+### Phase 1: Crawler Automation (Scheduling & Orchestration) [COMPLETED]
+* **[x] Celery Integration:** Configure Celery workers connected to the Alpine Redis broker. Enforce strict memory limits (e.g., `worker_max_memory_per_child`) to prevent long-running crawler tasks from causing Out-Of-Memory (OOM) errors.
+* **[x] List Scraping Logic:** Implement the pagination crawling logic to fetch job lists from ITviec and TopDev, extracting individual job URLs to feed into the existing [job_pipeline.py](../../../crawler/pipelines/job_pipeline.py).
+* **[x] Beat Scheduler:** Configure Celery Beat to schedule recurring crawl jobs (e.g., running daily at low-traffic hours like 2:00 AM) to maintain an up-to-date database.
+* **[x] Error Handling & Retries:** Implement exponential backoff for failed fetch attempts and proxy rotation triggers if 403/429 HTTP errors are encountered.
+
 
 ### Phase 2: Embedding Generation & Vector Search
 * **Embedding Pipeline:** Create a service to generate vector embeddings from job descriptions and requirements. To maintain low local resource usage, utilize a cloud-based API (like Gemini) rather than hosting heavy local embedding models.
