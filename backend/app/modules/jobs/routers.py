@@ -52,6 +52,12 @@ async def search_jobs(
     return await JobViews.search_jobs_semantically(db, query=q, limit=limit)
 
 
+@router.get("/analytics")
+async def get_analytics(db: AsyncSession = Depends(get_db)):
+    """Retrieve IT job market trend statistics with caching."""
+    return await JobViews.get_analytics_overview(db)
+
+
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(job_id: UUID, db: AsyncSession = Depends(get_db)):
     """Fetch a specific job posting details by ID."""

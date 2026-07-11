@@ -49,7 +49,7 @@ class GeminiChatService:
                 f"--- Job #{idx} ---\n"
                 f"Job ID: {job.id}\n"
                 f"Title: {job.title}\n"
-                f"Location: {job.address or 'N/A'}\n"
+                f"Location: {job.company.address or 'N/A'}\n"
                 f"Salary: {salary_info}\n"
                 f"Seniority: {job.seniority}\n"
                 f"Remote Policy: {job.remote_policy}\n"

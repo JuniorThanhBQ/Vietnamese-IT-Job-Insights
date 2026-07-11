@@ -11,6 +11,7 @@ from app.modules.jobs.models import (
 )
 from app.modules.jobs.services import JobService
 from app.modules.jobs.rag_service import GeminiChatService
+from app.modules.jobs.analytics_service import AnalyticsService
 
 
 class JobViews:
@@ -57,3 +58,8 @@ class JobViews:
         chat_service = GeminiChatService()
         async for chunk in chat_service.stream_chat(db, query, history):
             yield f"data: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
+
+    @staticmethod
+    async def get_analytics_overview(db: AsyncSession) -> dict:
+        """Fetch and return trend analytics payload."""
+        return await AnalyticsService.get_analytics_overview(db)

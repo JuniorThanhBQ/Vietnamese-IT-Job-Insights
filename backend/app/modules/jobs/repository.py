@@ -1,9 +1,11 @@
+# pylint: disable=not-callable
 from uuid import UUID
 from datetime import datetime
 from typing import Sequence, Optional
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, case, func
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.db_models import Job, JobEmbedding
+from app.models.db_models import Job, JobEmbedding, Company
 from app.modules.jobs.models import JobCreate, JobFilterParams
 
 
@@ -121,6 +123,7 @@ class JobRepository:
         stmt = (
             select(Job, distance_expr.label("distance"))
             .join(JobEmbedding, Job.id == JobEmbedding.job_id)
+            .options(joinedload(Job.company))
             .where(Job.is_active)
             .order_by("distance")
             .limit(limit)
@@ -128,3 +131,112 @@ class JobRepository:
         result = await db.execute(stmt)
         rows = result.all()
         return [(row[0], 1.0 - float(row[1])) for row in rows]
+
+    @staticmethod
+    async def get_salary_trends_by_seniority(db: AsyncSession) -> list[dict]:
+        """Calculate average salary ranges grouped by seniority."""
+        min_vnd = case(
+            (Job.salary_currency == "USD", Job.salary_min * 25000),
+            else_=Job.salary_min,
+        )
+        max_vnd = case(
+            (Job.salary_currency == "USD", Job.salary_max * 25000),
+            else_=Job.salary_max,
+        )
+        stmt = (
+            select(
+                Job.seniority,
+                func.avg(min_vnd).label("avg_min_vnd"),
+                func.avg(max_vnd).label("avg_max_vnd"),
+                func.count(Job.id).label("job_count"),
+            )
+            .where(
+                Job.is_active,
+                Job.salary_min.is_not(None),
+                Job.salary_max.is_not(None),
+            )
+            .group_by(Job.seniority)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+        return [
+            {
+                "seniority": row[0],
+                "avg_min_vnd": float(row[1]) if row[1] else 0.0,
+                "avg_max_vnd": float(row[2]) if row[2] else 0.0,
+                "job_count": int(row[3]),
+            }
+            for row in rows
+        ]
+
+    @staticmethod
+    async def get_remote_policy_distribution(db: AsyncSession) -> dict[str, int]:
+        """Count occurrences of remote work policies."""
+        stmt = (
+            select(Job.remote_policy, func.count(Job.id).label("job_count"))
+            .where(Job.is_active)
+            .group_by(Job.remote_policy)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+        return {row[0]: int(row[1]) for row in rows}
+
+    @staticmethod
+    async def get_location_distribution(db: AsyncSession) -> dict[str, int]:
+        """Group and count jobs by major Vietnamese cities/regions."""
+        location_case = case(
+            (
+                Company.address.ilike("%Hồ Chí Minh%")
+                | Company.address.ilike("%HCM%")
+                | Company.address.ilike("%HCMC%"),
+                "Hồ Chí Minh",
+            ),
+            (
+                Company.address.ilike("%Hà Nội%") | Company.address.ilike("%Ha Noi%"),
+                "Hà Nội",
+            ),
+            (
+                Company.address.ilike("%Đà Nẵng%") | Company.address.ilike("%Da Nang%"),
+                "Đà Nẵng",
+            ),
+            else_="Other",
+        )
+        stmt = (
+            select(
+                location_case.label("location"),
+                func.count(Job.id).label("job_count"),
+            )
+            .join(Company, Job.company_id == Company.id)
+            .where(Job.is_active)
+            .group_by(location_case)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+        return {row[0]: int(row[1]) for row in rows}
+
+    @staticmethod
+    async def get_tech_stack_demand(
+        db: AsyncSession, keywords: list[str]
+    ) -> dict[str, int]:
+        """Count occurrences of technical stack keywords in a single table scan query."""
+        if not keywords:
+            return {}
+
+        select_exprs = []
+        for kw in keywords:
+            kw_cond = (
+                Job.title.ilike(f"%{kw}%")
+                | Job.description.ilike(f"%{kw}%")
+                | Job.requirements.ilike(f"%{kw}%")
+            )
+            select_exprs.append(func.sum(case((kw_cond, 1), else_=0)).label(kw.lower()))
+
+        stmt = select(*select_exprs).where(Job.is_active)
+        result = await db.execute(stmt)
+        row = result.first()
+
+        stats = {}
+        if row:
+            for idx, kw in enumerate(keywords):
+                stats[kw] = int(row[idx]) if row[idx] is not None else 0
+        return stats

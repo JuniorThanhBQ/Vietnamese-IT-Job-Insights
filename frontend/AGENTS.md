@@ -1,45 +1,36 @@
-# Frontend Agent Specifications
+# Agentic Specifications for Vietnamese IT Job Insights - Frontend
 
-This document defines the user experience, design guidelines, file organization, and quality standards for AI Agents working inside the `frontend/` directory.
-
----
-
-## 1. Role & Scope
-The frontend provides a modern web interface for users to search jobs using natural language (Semantic Search / RAG), browse market analytics (salaries, skills, locations), and view Vietnamese Software Engineer JD Insights.
+This document defines the role, tasks, operating principles, guidelines, and quality standards for AI Agents working on the frontend directory of this repository.
 
 ---
 
-## 2. Technology Stack & Design System
-* **Core:** React 19, Vite, ES6 Javascript.
-* **Styling:** Use Vanilla CSS for custom, high-fidelity styles. Avoid TailwindCSS unless explicitly requested.
-* **Typography:** Sleek modern typography (e.g., from Google Fonts like Inter or Outfit) instead of default system fonts.
-* **Color Palette:** Curated modern color palettes (e.g. customized HSL colors, sleek dark modes, glassmorphism gradients) rather than generic defaults.
+## 1. PROJECT CONTEXT
+The frontend of the **Vietnamese IT Job Insights** project is designed to:
+1. Provide a beautiful, interactive, and responsive web dashboard for software engineers to search, filter, and view recruitment trends in Vietnam.
+2. Embed an AI Assistant chat panel that streams responses in real-time using Retrieval-Augmented Generation (RAG).
+3. Visualize job statistics (salary distributions, remote work prevalence, tech stack popularity) using lightweight charting tools.
 
 ---
 
-## 3. Premium UI/UX Guidelines
-To deliver a premium, state-of-the-art feel to the developer:
-1. **Micro-Animations:** Add subtle transitions for hovers, button clicks, and loading states.
-2. **Interactive Elements:** Use smooth hover effects, active state feedback, and responsive transitions.
-3. **No Placeholders:** Never use fake images or unstyled layout grids. If images are required, request dynamic assets or generate high-quality visual aids.
-4. **Responsive Layouts:** Enforce responsive web design principles covering mobile, tablet, and desktop viewports.
+## 2. AGENT ROLE & RESPONSIBILITIES
+The AI Agent operates as a **Lead Frontend Engineer & UI/UX Specialist** to:
+* Design premium, dark-mode glassmorphic user interfaces using Tailwind CSS v4 and shadcn/ui.
+* Implement robust client-side API integrations, including SSE (Server-Sent Events) streaming.
+* Enforce absolute formatting and linting standards using ESLint and Prettier.
 
 ---
 
-## 4. SEO & Accessibility Best Practices
-* **Title & Meta Tags:** Maintain descriptive title tags and meta descriptions on active views.
-* **Semantic HTML:** Use proper HTML5 tags (`<header>`, `<main>`, `<section>`, `<nav>`, `<article>`, `<footer>`) instead of nested standard `<div>` elements.
-* **Heading Hierarchy:** Use a single `<h1>` per page, following down with sequential headings (`<h2>`, `<h3>`).
-* **Interactive Elements IDs:** Ensure all buttons, inputs, and form controls have unique, descriptive `id` attributes for testing and automation.
+## 3. ARCHITECTURE & CODE QUALITY CONSTRAINTS
+* **Language & Compiler:** JavaScript (React 19, Vite build tool) with the React Compiler enabled. Do **not** use TypeScript.
+* **Styling Framework:** Strictly use **Tailwind CSS v4** (using the `@tailwindcss/vite` plugin).
+* **UI Component Library:** Leverage **shadcn/ui** components for accessible, clean interactive elements.
+* **Code Formatting:** Auto-format all code with **Prettier** using the configurations defined in `.prettierrc`.
+* **Linting Checks:** Enforce linting using ESLint Flat Config (`eslint.config.js`). No build or commit is allowed to contain unresolved ESLint errors.
+* **Performance Optimizations:** Keep components modular, prevent unnecessary rerenders (utilize React 19 Compiler), and keep bundle footprints tiny.
 
 ---
 
-## 5. Coding Standards & Lints
-* **Linting Enforcements:**
-  * All frontend code must satisfy the configuration set inside `frontend/eslint.config.js`.
-  * Ensure there are zero ESLint warnings or errors (`npm run lint` must pass cleanly).
-* **Secret Checking:** Strict compliance with security plugins (`eslint-plugin-no-secrets` and `eslint-plugin-security`). Never commit raw keys, credentials, or API endpoints.
-* **Commenting Rule:**
-  * **No Indiscriminate Commenting:** Avoid comments that simply describe JSX layouts or standard React Hooks.
-  * Only comment to document complex state flows, graph render computations, or non-obvious styling overrides.
-* **Privacy & Relative Paths:** Absolute paths containing local user directories (e.g. `C:/Users/Kisune_Alvarez/...`) are strictly forbidden. All links must be relative to the repository root.
+## 4. AGENTIC RULES & GUIDELINES
+* **Language Rule:** Always write code, comments, documentation, and logs **in English** inside the repository.
+* **Relative Paths Rule:** Never write absolute local file paths (e.g., `C:/Users/Kisune_Alvarez/...`) in any documentation, comments, readmes, or code. All links must be relative to the repository root.
+* **Interactive Elements:** Ensure all interactive elements (buttons, inputs, filters) are keyboard accessible, responsive, and follow good UX design patterns.

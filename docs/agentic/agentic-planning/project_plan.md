@@ -70,9 +70,10 @@ To ensure the system conforms to the user requirements and low-resource limitati
 * **[x] Assistant Endpoint:** Expose a streaming chat endpoint (`text/event-stream`) for the React frontend, allowing users to ask natural language questions (e.g., "What are the requirements for a Mid-level Python dev in Ho Chi Minh?").
 
 
-### Phase 4: Trend Analytics API
-* **Statistical Aggregation:** Create specialized SQLAlchemy queries to calculate market trends: average salaries by seniority, demand percentages for specific tech stacks (e.g., React vs. Angular), and the prevalence of remote/hybrid work policies.
-* **Caching Strategy:** Since aggregations are computationally heavy for low-spec databases, cache the JSON responses of these analytics in Redis with a Time-To-Live (TTL) of 12-24 hours.
+### Phase 4: Trend Analytics API [COMPLETED]
+* **[x] Statistical Aggregation:** Create specialized SQLAlchemy queries to calculate market trends: average salaries by seniority, demand percentages for specific tech stacks (e.g., React vs. Angular), and the prevalence of remote/hybrid work policies.
+* **[x] Caching Strategy:** Since aggregations are computationally heavy for low-spec databases, cache the JSON responses of these analytics in Redis with a Time-To-Live (TTL) of 12-24 hours.
+
 
 ### Phase 5: React Frontend UI Development
 * **Framework & Styling:** Initialize a React 19 project using Vite. Strictly use Vanilla CSS for styling to keep the frontend lightweight, avoiding heavy UI libraries unless necessary.
