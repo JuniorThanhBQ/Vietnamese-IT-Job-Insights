@@ -102,7 +102,7 @@ services:
     container_name: jd_insights_frontend_prod
     restart: always
     ports:
-      - "80:80"
+      - "80:8080"
     depends_on:
       - backend
 
